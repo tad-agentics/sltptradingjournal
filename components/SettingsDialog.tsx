@@ -17,17 +17,28 @@ interface SettingsDialogProps {
     slBudgetR: number;
     theme: 'light' | 'dark';
     pairs: string[];
+    challenge: {
+      enabled: boolean;
+      targetBalance: number;
+      durationDays: number;
+      startDate: string | null;
+      startingBalance: number;
+    };
   };
-  onSaveSettings: (settings: { beginningBalance: number; dailyTargetR: number; slBudgetR: number; theme: 'light' | 'dark'; pairs: string[] }) => void;
+  currentBalance: number;
+  onSaveSettings: (settings: any) => void;
 }
 
-export function SettingsDialog({ open, onOpenChange, settings, onSaveSettings }: SettingsDialogProps) {
+export function SettingsDialog({ open, onOpenChange, settings, currentBalance, onSaveSettings }: SettingsDialogProps) {
   const [formData, setFormData] = useState({
     beginningBalance: settings.beginningBalance.toString(),
     dailyTargetR: settings.dailyTargetR.toString(),
     slBudgetR: settings.slBudgetR.toString(),
     theme: settings.theme,
-    pairs: settings.pairs
+    pairs: settings.pairs,
+    challengeEnabled: settings.challenge.enabled,
+    challengeTargetBalance: settings.challenge.targetBalance.toString(),
+    challengeDurationDays: settings.challenge.durationDays.toString(),
   });
   const [newPair, setNewPair] = useState('');
 
@@ -37,7 +48,10 @@ export function SettingsDialog({ open, onOpenChange, settings, onSaveSettings }:
       dailyTargetR: settings.dailyTargetR.toString(),
       slBudgetR: settings.slBudgetR.toString(),
       theme: settings.theme,
-      pairs: settings.pairs
+      pairs: settings.pairs,
+      challengeEnabled: settings.challenge.enabled,
+      challengeTargetBalance: settings.challenge.targetBalance.toString(),
+      challengeDurationDays: settings.challenge.durationDays.toString(),
     });
   }, [settings]);
 
@@ -65,14 +79,27 @@ export function SettingsDialog({ open, onOpenChange, settings, onSaveSettings }:
       return;
     }
 
-    onSaveSettings({
+    const newSettings = {
       beginningBalance: parseFloat(formData.beginningBalance),
       dailyTargetR: parseFloat(formData.dailyTargetR),
       slBudgetR: parseFloat(formData.slBudgetR),
       theme: formData.theme,
-      pairs: formData.pairs
-    });
+      pairs: formData.pairs,
+      challenge: {
+        enabled: formData.challengeEnabled,
+        targetBalance: parseFloat(formData.challengeTargetBalance) || 0,
+        durationDays: parseInt(formData.challengeDurationDays) || 0,
+        // If enabling for first time, set start date and starting balance
+        startDate: formData.challengeEnabled && !settings.challenge.enabled 
+          ? new Date().toISOString().split('T')[0]
+          : settings.challenge.startDate,
+        startingBalance: formData.challengeEnabled && !settings.challenge.enabled
+          ? currentBalance
+          : settings.challenge.startingBalance
+      }
+    };
 
+    onSaveSettings(newSettings);
     onOpenChange(false);
   };
 
@@ -97,32 +124,56 @@ export function SettingsDialog({ open, onOpenChange, settings, onSaveSettings }:
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="dailyTargetR">R Daily Target (%)</Label>
-            <Input
-              id="dailyTargetR"
-              type="number"
-              step="0.1"
-              placeholder="2.0"
-              value={formData.dailyTargetR}
-              onChange={(e) => setFormData({ ...formData, dailyTargetR: e.target.value })}
-              required
-            />
-            <p className="text-xs text-muted-foreground">Target profit in R per day</p>
-          </div>
+          {/* Challenge Mode Section - Replaces R Daily Target and SL Budget */}
+          <div className="space-y-3 pt-2 border-t border-border">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="font-medium">Challenge Mode</div>
+                <div className="text-xs text-muted-foreground">Set a target and duration</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, challengeEnabled: !formData.challengeEnabled })}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  formData.challengeEnabled ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    formData.challengeEnabled ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="slBudgetR">R Budget for SL (%)</Label>
-            <Input
-              id="slBudgetR"
-              type="number"
-              step="0.1"
-              placeholder="1.0"
-              value={formData.slBudgetR}
-              onChange={(e) => setFormData({ ...formData, slBudgetR: e.target.value })}
-              required
-            />
-            <p className="text-xs text-muted-foreground">Maximum loss tolerance in R per day</p>
+            {formData.challengeEnabled && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="challengeTargetBalance">Target $ (Gross)</Label>
+                  <Input
+                    id="challengeTargetBalance"
+                    type="number"
+                    step="0.01"
+                    placeholder="100000"
+                    value={formData.challengeTargetBalance}
+                    onChange={(e) => setFormData({ ...formData, challengeTargetBalance: e.target.value })}
+                    required={formData.challengeEnabled}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="challengeDurationDays">Duration (Days)</Label>
+                  <Input
+                    id="challengeDurationDays"
+                    type="number"
+                    placeholder="365"
+                    value={formData.challengeDurationDays}
+                    onChange={(e) => setFormData({ ...formData, challengeDurationDays: e.target.value })}
+                    required={formData.challengeEnabled}
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           <div className="space-y-2">

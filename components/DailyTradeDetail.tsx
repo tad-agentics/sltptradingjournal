@@ -11,12 +11,22 @@ interface DailyTradeDetailProps {
     beginningBalance: number;
     dailyTargetR: number;
     slBudgetR: number;
+    challenge: {
+      enabled: boolean;
+      targetBalance: number;
+      durationDays: number;
+      startDate: string | null;
+      startingBalance: number;
+    };
   };
+  challengeProgress: {
+    requiredDailyR: number;
+  } | null;
   onClose: () => void;
   onDeleteTrade: (id: string) => void;
 }
 
-export function DailyTradeDetail({ trades, selectedDate, settings, onClose, onDeleteTrade }: DailyTradeDetailProps) {
+export function DailyTradeDetail({ trades, selectedDate, settings, challengeProgress, onClose, onDeleteTrade }: DailyTradeDetailProps) {
   const dayTrades = trades.filter(trade => trade.date === selectedDate);
   
   const formattedDate = new Date(selectedDate).toLocaleDateString('en-US', {
@@ -70,6 +80,10 @@ export function DailyTradeDetail({ trades, selectedDate, settings, onClose, onDe
   const dailyTargetAmount = rValue * settings.dailyTargetR;
   const slBudgetAmount = rValue * settings.slBudgetR;
 
+  // Check if daily R target was achieved (for challenge mode)
+  const requiredR = challengeProgress?.requiredDailyR || 0;
+  const rAchieved = totalR >= requiredR;
+
   return (
     <Card className="bg-card border border-border shadow-sm md:shadow-lg max-h-[calc(100vh-8rem)] overflow-y-auto">
       <CardHeader className="pb-3">
@@ -119,24 +133,47 @@ export function DailyTradeDetail({ trades, selectedDate, settings, onClose, onDe
           </div>
         </div>
 
-        {/* Daily Targets */}
-        <div className="bg-muted border border-border rounded-lg p-3">
-          <div className="text-[10px] text-muted-foreground mb-2">Daily Goals</div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <div className="text-[9px] text-muted-foreground mb-0.5">Target</div>
-              <div className="text-green-600 dark:text-green-400 text-sm">
-                +{settings.dailyTargetR}R (${dailyTargetAmount.toFixed(2)})
+        {/* Daily Targets - Show Challenge data if enabled, otherwise show regular goals */}
+        {settings.challenge.enabled && challengeProgress ? (
+          <div className="bg-muted border border-border rounded-lg p-3">
+            <div className="text-[10px] text-muted-foreground mb-2">Challenge Target</div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <div className="text-[9px] text-muted-foreground mb-0.5">Daily R Required</div>
+                <div className="text-green-600 dark:text-green-400 text-sm">
+                  {requiredR.toFixed(2)}R
+                </div>
               </div>
-            </div>
-            <div>
-              <div className="text-[9px] text-muted-foreground mb-0.5">SL Budget</div>
-              <div className="text-red-600 dark:text-red-400 text-sm">
-                -{settings.slBudgetR}R (${slBudgetAmount.toFixed(2)})
+              <div>
+                <div className="text-[9px] text-muted-foreground mb-0.5">Status</div>
+                <div className={`text-sm ${rAchieved ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                  {rAchieved ? '✓ Achieved' : '✗ Not Achieved'}
+                </div>
+                <div className="text-[9px] text-muted-foreground">
+                  Actual: {totalR.toFixed(2)}R
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="bg-muted border border-border rounded-lg p-3">
+            <div className="text-[10px] text-muted-foreground mb-2">Daily Goals</div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <div className="text-[9px] text-muted-foreground mb-0.5">Target</div>
+                <div className="text-green-600 dark:text-green-400 text-sm">
+                  +{settings.dailyTargetR}R (${dailyTargetAmount.toFixed(2)})
+                </div>
+              </div>
+              <div>
+                <div className="text-[9px] text-muted-foreground mb-0.5">SL Budget</div>
+                <div className="text-red-600 dark:text-red-400 text-sm">
+                  -{settings.slBudgetR}R (${slBudgetAmount.toFixed(2)})
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Trade List - 1 line each */}
         <div className="space-y-1.5">

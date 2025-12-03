@@ -5,10 +5,12 @@ import { PortfolioSummary } from './components/PortfolioSummary';
 import { TradeCalendar } from './components/TradeCalendar';
 import { DailyTradeDetail } from './components/DailyTradeDetail';
 import { DatabaseErrorMessage } from './components/DatabaseErrorMessage';
+import { ChallengeProgress } from './components/ChallengeProgress';
 import { Button } from './components/ui/button';
 import { Plus, Settings, Cloud, CloudOff, LogIn } from 'lucide-react';
 import { tradeService, isUsingSupabase } from './lib/tradeService';
 import { AuthProvider, useAuth } from './lib/auth';
+import { calculateChallengeProgress } from './lib/challengeCalculator';
 
 export interface Trade {
   id: string;
@@ -38,7 +40,14 @@ function AppContent() {
       dailyTargetR: 2.0,
       slBudgetR: 1.0,
       theme: 'dark' as 'light' | 'dark',
-      pairs: ['BTC/USD', 'ETH/USD', 'SOL/USD', 'XRP/USD']
+      pairs: ['BTC/USD', 'ETH/USD', 'SOL/USD', 'XRP/USD'],
+      challenge: {
+        enabled: false,
+        targetBalance: 0,
+        durationDays: 0,
+        startDate: null as string | null,
+        startingBalance: 0
+      }
     };
   });
 
@@ -163,6 +172,13 @@ function AppContent() {
     }
   };
 
+  // Calculate current balance and challenge progress
+  const currentBalance = settings.beginningBalance + trades.reduce((sum, trade) => sum + trade.pnl - trade.fee, 0);
+  
+  const challengeProgress = settings.challenge.enabled 
+    ? calculateChallengeProgress(settings.challenge, currentBalance)
+    : null;
+
   // Show loading screen while auth or trades are loading
   if (authLoading || isLoading) {
     return (
@@ -240,6 +256,17 @@ function AppContent() {
           <>
             <PortfolioSummary trades={trades} />
             
+            {/* Challenge Progress - Show if enabled */}
+            {challengeProgress && (
+              <ChallengeProgress 
+                currentBalance={challengeProgress.currentBalance}
+                targetBalance={settings.challenge.targetBalance}
+                requiredDailyR={challengeProgress.requiredDailyR}
+                daysRemaining={challengeProgress.daysRemaining}
+                riskLevel={challengeProgress.riskLevel}
+              />
+            )}
+            
             {/* Desktop: 2-column grid layout, Mobile: stacked */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Left column: Calendar (always visible) */}
@@ -254,6 +281,7 @@ function AppContent() {
                     trades={trades} 
                     selectedDate={selectedDate} 
                     settings={settings}
+                    challengeProgress={challengeProgress}
                     onClose={() => setSelectedDate(null)}
                     onDeleteTrade={deleteTrade}
                   />
@@ -287,6 +315,7 @@ function AppContent() {
         open={isSettingsDialogOpen}
         onOpenChange={setIsSettingsDialogOpen}
         settings={settings}
+        currentBalance={currentBalance}
         onSaveSettings={setSettings}
       />
     </div>
