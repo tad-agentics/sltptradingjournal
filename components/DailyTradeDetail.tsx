@@ -1,7 +1,7 @@
 import { Trade } from '../App';
 import { Card, CardContent, CardHeader } from './ui/card';
 import { Button } from './ui/button';
-import { X, TrendingUp, TrendingDown } from 'lucide-react';
+import { X, TrendingUp, TrendingDown, Trash2 } from 'lucide-react';
 import { Badge } from './ui/badge';
 
 interface DailyTradeDetailProps {
@@ -13,9 +13,10 @@ interface DailyTradeDetailProps {
     slBudgetR: number;
   };
   onClose: () => void;
+  onDeleteTrade: (id: string) => void;
 }
 
-export function DailyTradeDetail({ trades, selectedDate, settings, onClose }: DailyTradeDetailProps) {
+export function DailyTradeDetail({ trades, selectedDate, settings, onClose, onDeleteTrade }: DailyTradeDetailProps) {
   const dayTrades = trades.filter(trade => trade.date === selectedDate);
   
   if (dayTrades.length === 0) return null;
@@ -146,6 +147,14 @@ export function DailyTradeDetail({ trades, selectedDate, settings, onClose }: Da
                 <span className={`text-sm ${trade.pnl >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                   {trade.pnl >= 0 ? '+' : ''}${trade.pnl.toFixed(2)}
                 </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onDeleteTrade(trade.id)}
+                  className="size-7 text-muted-foreground hover:text-destructive"
+                >
+                  <Trash2 className="size-4" />
+                </Button>
               </div>
             </div>
           ))}

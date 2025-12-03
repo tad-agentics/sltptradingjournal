@@ -98,6 +98,7 @@ export default function App() {
             selectedDate={selectedDate} 
             settings={settings}
             onClose={() => setSelectedDate(null)}
+            onDeleteTrade={deleteTrade}
           />
         )}
       </div>
