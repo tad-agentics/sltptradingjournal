@@ -78,7 +78,7 @@ export function SettingsDialog({ open, onOpenChange, settings, onSaveSettings }:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-popover border-border max-w-md">
+      <DialogContent className="bg-popover border-border max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
           <DialogDescription className="text-muted-foreground">Configure your trading settings</DialogDescription>
