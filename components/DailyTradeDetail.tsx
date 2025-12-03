@@ -47,7 +47,7 @@ export function DailyTradeDetail({ trades, selectedDate, settings, onClose, onDe
   });
 
   return (
-    <Card className="bg-card border border-border shadow-sm">
+    <Card className="bg-card border border-border shadow-sm md:shadow-lg max-h-[calc(100vh-8rem)] overflow-y-auto">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <h3>{formattedDate}</h3>

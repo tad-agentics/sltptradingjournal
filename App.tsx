@@ -236,16 +236,33 @@ function AppContent() {
         ) : (
           <>
             <PortfolioSummary trades={trades} />
-            <TradeCalendar trades={trades} selectedDate={selectedDate} onSelectDate={setSelectedDate} />
-            {selectedDate && (
-              <DailyTradeDetail 
-                trades={trades} 
-                selectedDate={selectedDate} 
-                settings={settings}
-                onClose={() => setSelectedDate(null)}
-                onDeleteTrade={deleteTrade}
-              />
-            )}
+            
+            {/* Desktop: 2-column grid layout, Mobile: stacked */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Left column: Calendar (always visible) */}
+              <div className="md:col-span-1">
+                <TradeCalendar trades={trades} selectedDate={selectedDate} onSelectDate={setSelectedDate} />
+              </div>
+              
+              {/* Right column: Detail card (slide in on desktop, overlay on mobile) */}
+              {selectedDate && (
+                <div className={`
+                  md:col-span-1
+                  md:sticky md:top-20 md:h-fit
+                  md:animate-slide-in
+                  fixed inset-0 z-50 md:relative md:z-auto
+                  ${selectedDate ? 'block' : 'hidden'}
+                `}>
+                  <DailyTradeDetail 
+                    trades={trades} 
+                    selectedDate={selectedDate} 
+                    settings={settings}
+                    onClose={() => setSelectedDate(null)}
+                    onDeleteTrade={deleteTrade}
+                  />
+                </div>
+              )}
+            </div>
           </>
         )}
       </div>
