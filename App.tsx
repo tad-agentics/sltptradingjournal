@@ -139,7 +139,6 @@ export default function App() {
     setTrades([newTrade, ...trades]);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const deleteTrade = (id: string) => {
     setTrades(trades.filter(trade => trade.id !== id));
   };
