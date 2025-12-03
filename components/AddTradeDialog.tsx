@@ -66,11 +66,11 @@ export function AddTradeDialog({ open, onOpenChange, onAddTrade, pairs }: AddTra
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md bg-popover border-border" aria-describedby={undefined}>
+      <DialogContent className="max-w-md bg-popover border-border overflow-hidden" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>Add Trade</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 overflow-hidden">
           <div className="space-y-2">
             <Label htmlFor="pair">Pair</Label>
             <Select
@@ -140,6 +140,7 @@ export function AddTradeDialog({ open, onOpenChange, onAddTrade, pairs }: AddTra
               value={formData.date}
               onChange={(e) => setFormData({ ...formData, date: e.target.value })}
               required
+              className="w-full max-w-full"
             />
           </div>
 
