@@ -200,7 +200,11 @@ export function SettingsDialog({ open, onOpenChange, settings, onSaveSettings }:
         </form>
 
         {/* Authentication Section - Only show if Supabase is configured */}
-        {isUsingSupabase() && <AuthSection />}
+        {isUsingSupabase() && (
+          <div className="pt-4 border-t">
+            <AuthSection />
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

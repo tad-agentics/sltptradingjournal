@@ -5,7 +5,7 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { LogOut, Mail, Lock } from 'lucide-react';
 
-export function AuthSection() {
+function AuthSectionContent() {
   const { user, signIn, signUp, signOut } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
@@ -173,4 +173,11 @@ export function AuthSection() {
       </form>
     </div>
   );
+}
+
+// Wrapper component that safely renders AuthSectionContent
+export function AuthSection() {
+  // This component can be rendered anywhere, but AuthSectionContent
+  // requires the AuthProvider context
+  return <AuthSectionContent />;
 }
