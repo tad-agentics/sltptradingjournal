@@ -211,13 +211,16 @@ function AppContent() {
     <div className="min-h-screen bg-background pb-20">
       <div className="bg-transparent sticky top-0 z-10">
         <div className="px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h1>SLTP Trading Journal</h1>
-            {isUsingSupabase() ? (
-              <Cloud className="size-4 text-green-500" />
-            ) : (
-              <CloudOff className="size-4 text-yellow-500" />
-            )}
+          <div className="flex items-center gap-3">
+            <img src="/icon.png" alt="SLTP Journal" className="size-8 rounded-lg" />
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg font-semibold">SLTP Journal</h1>
+              {isUsingSupabase() ? (
+                <Cloud className="size-4 text-green-500" />
+              ) : (
+                <CloudOff className="size-4 text-yellow-500" />
+              )}
+            </div>
           </div>
           <Button 
             onClick={() => setIsSettingsDialogOpen(true)}
