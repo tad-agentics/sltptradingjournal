@@ -249,21 +249,30 @@ function AppContent() {
               
               {/* Right column: Detail card (slide in on desktop, overlay on mobile) */}
               {selectedDate && (
-                <div className={`
-                  md:col-span-1
-                  md:sticky md:top-20 md:h-fit
-                  md:animate-slide-in
-                  fixed inset-0 z-50 md:relative md:z-auto
-                  ${selectedDate ? 'block' : 'hidden'}
-                `}>
-                  <DailyTradeDetail 
-                    trades={trades} 
-                    selectedDate={selectedDate} 
-                    settings={settings}
-                    onClose={() => setSelectedDate(null)}
-                    onDeleteTrade={deleteTrade}
+                <>
+                  {/* Mobile backdrop */}
+                  <div 
+                    className="fixed inset-0 bg-black/50 z-40 md:hidden"
+                    onClick={() => setSelectedDate(null)}
                   />
-                </div>
+                  
+                  {/* Detail card */}
+                  <div className={`
+                    md:col-span-1
+                    md:sticky md:top-20 md:h-fit
+                    md:animate-slide-in
+                    fixed inset-x-4 top-20 bottom-20 z-50 md:relative md:z-auto md:inset-auto
+                    ${selectedDate ? 'block' : 'hidden'}
+                  `}>
+                    <DailyTradeDetail 
+                      trades={trades} 
+                      selectedDate={selectedDate} 
+                      settings={settings}
+                      onClose={() => setSelectedDate(null)}
+                      onDeleteTrade={deleteTrade}
+                    />
+                  </div>
+                </>
               )}
             </div>
           </>

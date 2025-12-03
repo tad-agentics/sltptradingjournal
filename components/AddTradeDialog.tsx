@@ -34,6 +34,37 @@ export function AddTradeDialog({ open, onOpenChange, onAddTrade, pairs }: AddTra
     date: new Date().toISOString().split('T')[0],
     notes: ''
   });
+  const [feeError, setFeeError] = useState<string | null>(null);
+  const [pnlError, setPnlError] = useState<string | null>(null);
+
+  // Helper function to evaluate formulas like "150+50-20" or "0.5+0.3+0.2"
+  const evaluateFormula = (formula: string): number | null => {
+    try {
+      // Remove all whitespace
+      const cleaned = formula.replace(/\s/g, '');
+      
+      // Check if it's just a number (including negative)
+      if (/^-?\d*\.?\d+$/.test(cleaned)) {
+        return parseFloat(cleaned);
+      }
+      
+      // Check if it's a valid formula (numbers separated by + or -)
+      if (/^-?\d*\.?\d+([\+\-]\d*\.?\d+)+$/.test(cleaned)) {
+        // Split by operators while keeping them
+        const tokens = cleaned.match(/-?\d*\.?\d+/g);
+        if (!tokens) return null;
+        
+        return tokens.reduce((sum, token) => sum + parseFloat(token), 0);
+      }
+      
+      return null;
+    } catch {
+      return null;
+    }
+  };
+
+  const calculatedFee = evaluateFormula(formData.fee);
+  const calculatedPnl = evaluateFormula(formData.pnl);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,11 +73,26 @@ export function AddTradeDialog({ open, onOpenChange, onAddTrade, pairs }: AddTra
       return;
     }
 
+    const pnlValue = evaluateFormula(formData.pnl);
+    if (pnlValue === null) {
+      setPnlError('Invalid P&L format. Use a number or formula (e.g., 150+50-20)');
+      return;
+    }
+
+    const feeValue = evaluateFormula(formData.fee);
+    if (feeValue === null) {
+      setFeeError('Invalid fee format. Use a number or sum (e.g., 0.5+0.3+0.2)');
+      return;
+    }
+
+    setPnlError(null);
+    setFeeError(null);
+
     onAddTrade({
       pair: formData.pair.toUpperCase(),
       direction: formData.direction,
-      pnl: parseFloat(formData.pnl),
-      fee: parseFloat(formData.fee),
+      pnl: pnlValue,
+      fee: feeValue,
       date: formData.date,
       notes: formData.notes || undefined
     });
@@ -109,26 +155,52 @@ export function AddTradeDialog({ open, onOpenChange, onAddTrade, pairs }: AddTra
               <Label htmlFor="pnl">P&L</Label>
               <Input
                 id="pnl"
-                type="number"
-                step="0.01"
-                placeholder="150.00"
+                type="text"
+                placeholder="150 or 100+50-20"
                 value={formData.pnl}
-                onChange={(e) => setFormData({ ...formData, pnl: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, pnl: e.target.value });
+                  setPnlError(null);
+                }}
                 required
+                className={pnlError ? 'border-red-500' : ''}
               />
+              {formData.pnl && calculatedPnl !== null && /[\+\-]/.test(formData.pnl) && (
+                <p className="text-xs text-green-600 dark:text-green-400">
+                  = ${calculatedPnl.toFixed(2)}
+                </p>
+              )}
+              {pnlError && (
+                <p className="text-xs text-red-600 dark:text-red-400">
+                  {pnlError}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="fee">Fee</Label>
               <Input
                 id="fee"
-                type="number"
-                step="0.01"
-                placeholder="2.50"
+                type="text"
+                placeholder="2.50 or 0.5+0.3+0.2"
                 value={formData.fee}
-                onChange={(e) => setFormData({ ...formData, fee: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, fee: e.target.value });
+                  setFeeError(null);
+                }}
                 required
+                className={feeError ? 'border-red-500' : ''}
               />
+              {formData.fee && calculatedFee !== null && formData.fee.includes('+') && (
+                <p className="text-xs text-green-600 dark:text-green-400">
+                  = ${calculatedFee.toFixed(2)}
+                </p>
+              )}
+              {feeError && (
+                <p className="text-xs text-red-600 dark:text-red-400">
+                  {feeError}
+                </p>
+              )}
             </div>
           </div>
 

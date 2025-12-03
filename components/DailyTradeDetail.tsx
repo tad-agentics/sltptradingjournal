@@ -19,7 +19,37 @@ interface DailyTradeDetailProps {
 export function DailyTradeDetail({ trades, selectedDate, settings, onClose, onDeleteTrade }: DailyTradeDetailProps) {
   const dayTrades = trades.filter(trade => trade.date === selectedDate);
   
-  if (dayTrades.length === 0) return null;
+  const formattedDate = new Date(selectedDate).toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric'
+  });
+
+  // If no trades, show empty state
+  if (dayTrades.length === 0) {
+    return (
+      <Card className="bg-card border border-border shadow-sm md:shadow-lg">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <h3>{formattedDate}</h3>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="size-8"
+            >
+              <X className="size-4" />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="py-12">
+          <div className="text-center text-muted-foreground">
+            <p className="text-sm">No trades recorded for this day</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   // Calculate performance metrics
   const totalTrades = dayTrades.length;
@@ -39,12 +69,6 @@ export function DailyTradeDetail({ trades, selectedDate, settings, onClose, onDe
   // Calculate target and budget in dollars
   const dailyTargetAmount = rValue * settings.dailyTargetR;
   const slBudgetAmount = rValue * settings.slBudgetR;
-
-  const formattedDate = new Date(selectedDate).toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric'
-  });
 
   return (
     <Card className="bg-card border border-border shadow-sm md:shadow-lg max-h-[calc(100vh-8rem)] overflow-y-auto">
