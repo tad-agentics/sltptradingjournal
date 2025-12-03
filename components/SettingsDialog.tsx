@@ -5,6 +5,8 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { X } from 'lucide-react';
+import { AuthSection } from './AuthSection';
+import { isUsingSupabase } from '../lib/tradeService';
 
 interface SettingsDialogProps {
   open: boolean;
@@ -196,6 +198,9 @@ export function SettingsDialog({ open, onOpenChange, settings, onSaveSettings }:
             </Button>
           </div>
         </form>
+
+        {/* Authentication Section - Only show if Supabase is configured */}
+        {isUsingSupabase() && <AuthSection />}
       </DialogContent>
     </Dialog>
   );
