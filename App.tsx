@@ -216,6 +216,7 @@ function AppContent() {
             open={isSettingsDialogOpen}
             onOpenChange={setIsSettingsDialogOpen}
             settings={settings}
+            currentBalance={currentBalance}
             onSaveSettings={setSettings}
           />
         </div>
