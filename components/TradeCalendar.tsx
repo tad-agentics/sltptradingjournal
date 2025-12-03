@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { Trade } from '../App';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
-import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown } from 'lucide-react';
-import { Badge } from './ui/badge';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface TradeCalendarProps {
   trades: Trade[];
