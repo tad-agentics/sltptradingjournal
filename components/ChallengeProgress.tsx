@@ -41,17 +41,17 @@ export function ChallengeProgress({
         <div className="grid grid-cols-3 gap-3">
           <div>
             <div className="text-xs text-muted-foreground mb-1">Required Daily R</div>
-            <div className="text-xs md:text-2xl text-green-500">{requiredDailyR.toFixed(2)}R</div>
+            <div className="text-xs text-green-500">{requiredDailyR.toFixed(2)}R</div>
           </div>
           
           <div>
             <div className="text-xs text-muted-foreground mb-1">Days Remaining</div>
-            <div className="text-xs md:text-2xl">{daysRemaining} days</div>
+            <div className="text-xs">{daysRemaining} days</div>
           </div>
           
           <div>
             <div className="text-xs text-muted-foreground mb-1">Risk Level</div>
-            <div className="text-xs md:text-2xl text-green-500">{riskLevel}</div>
+            <div className="text-xs text-green-500">{riskLevel}</div>
           </div>
         </div>
       </CardContent>
