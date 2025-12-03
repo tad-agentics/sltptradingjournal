@@ -23,77 +23,7 @@ export default function App() {
     if (savedTrades) {
       return JSON.parse(savedTrades);
     }
-    return [
-      {
-        id: '1',
-        pair: 'BTC/USD',
-        direction: 'long',
-        pnl: 150.00,
-        fee: 2.50,
-        date: '2025-12-02',
-        notes: 'Strong momentum'
-      },
-      {
-        id: '2',
-        pair: 'ETH/USD',
-        direction: 'long',
-        pnl: 85.00,
-        fee: 1.50,
-        date: '2025-12-05',
-      },
-      {
-        id: '3',
-        pair: 'BTC/USD',
-        direction: 'short',
-        pnl: -45.00,
-        fee: 2.50,
-        date: '2025-12-10',
-        notes: 'Stop loss triggered'
-      },
-      {
-        id: '4',
-        pair: 'SOL/USD',
-        direction: 'long',
-        pnl: 120.00,
-        fee: 1.80,
-        date: '2025-12-15',
-      },
-      {
-        id: '5',
-        pair: 'ETH/USD',
-        direction: 'short',
-        pnl: 60.00,
-        fee: 1.50,
-        date: '2025-12-18',
-        notes: 'Profit taking'
-      },
-      {
-        id: '6',
-        pair: 'BNB/USD',
-        direction: 'long',
-        pnl: 95.00,
-        fee: 1.75,
-        date: '2025-12-20',
-      },
-      {
-        id: '7',
-        pair: 'SOL/USD',
-        direction: 'short',
-        pnl: -30.00,
-        fee: 1.80,
-        date: '2025-12-22',
-        notes: 'Cut losses'
-      },
-      {
-        id: '8',
-        pair: 'BTC/USD',
-        direction: 'long',
-        pnl: 200.00,
-        fee: 2.50,
-        date: '2025-12-28',
-        notes: 'Year end rally'
-      }
-    ];
+    return [];
   });
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
