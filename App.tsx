@@ -4,6 +4,7 @@ import { SettingsDialog } from './components/SettingsDialog';
 import { PortfolioSummary } from './components/PortfolioSummary';
 import { TradeCalendar } from './components/TradeCalendar';
 import { DailyTradeDetail } from './components/DailyTradeDetail';
+import { DatabaseErrorMessage } from './components/DatabaseErrorMessage';
 import { Button } from './components/ui/button';
 import { Plus, Settings, Cloud, CloudOff, LogIn } from 'lucide-react';
 import { tradeService, isUsingSupabase } from './lib/tradeService';
@@ -23,6 +24,7 @@ function AppContent() {
   const { user, loading: authLoading } = useAuth();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -55,7 +57,18 @@ function AppContent() {
 
       try {
         setIsLoading(true);
-        const loadedTrades = await tradeService.getAllTrades();
+        setHasError(false);
+        
+        // Add timeout to prevent infinite loading
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Loading timeout')), 10000)
+        );
+        
+        const loadedTrades = await Promise.race([
+          tradeService.getAllTrades(),
+          timeoutPromise
+        ]) as Trade[];
+        
         setTrades(loadedTrades);
         
         // If using Supabase and user just logged in, sync any local trades
@@ -64,21 +77,29 @@ function AppContent() {
           if (localTrades) {
             const parsedLocalTrades = JSON.parse(localTrades);
             if (parsedLocalTrades.length > 0) {
-              await tradeService.syncWithLocalStorage(parsedLocalTrades);
-              // Reload after sync
-              const syncedTrades = await tradeService.getAllTrades();
-              setTrades(syncedTrades);
-              // Clear local storage after successful sync
-              localStorage.removeItem('sltp-trades');
+              try {
+                await tradeService.syncWithLocalStorage(parsedLocalTrades);
+                // Reload after sync
+                const syncedTrades = await tradeService.getAllTrades();
+                setTrades(syncedTrades);
+                // Clear local storage after successful sync
+                localStorage.removeItem('sltp-trades');
+              } catch (syncError) {
+                console.error('Error syncing local trades:', syncError);
+                // Continue anyway with loaded trades
+              }
             }
           }
         }
       } catch (error) {
         console.error('Error loading trades:', error);
-        // Fallback to localStorage on error
-        const savedTrades = localStorage.getItem('sltp-trades');
-        if (savedTrades) {
-          setTrades(JSON.parse(savedTrades));
+        // Set empty array on error to unfreeze the UI
+        setTrades([]);
+        setHasError(true);
+        
+        // Show error message to user
+        if (error instanceof Error && error.message.includes('user_id')) {
+          console.error('Database migration required! Please run the migration SQL in Supabase.');
         }
       } finally {
         setIsLoading(false);
@@ -87,6 +108,13 @@ function AppContent() {
 
     loadTrades();
   }, [user, authLoading]);
+
+  const retryLoadTrades = () => {
+    setHasError(false);
+    setIsLoading(true);
+    // Trigger reload by updating a dependency
+    window.location.reload();
+  };
 
   // Save trades to localStorage as backup (only if not using Supabase)
   useEffect(() => {
@@ -203,16 +231,22 @@ function AppContent() {
       </div>
 
       <div className="px-4 py-4 space-y-4">
-        <PortfolioSummary trades={trades} />
-        <TradeCalendar trades={trades} selectedDate={selectedDate} onSelectDate={setSelectedDate} />
-        {selectedDate && (
-          <DailyTradeDetail 
-            trades={trades} 
-            selectedDate={selectedDate} 
-            settings={settings}
-            onClose={() => setSelectedDate(null)}
-            onDeleteTrade={deleteTrade}
-          />
+        {hasError ? (
+          <DatabaseErrorMessage onRetry={retryLoadTrades} />
+        ) : (
+          <>
+            <PortfolioSummary trades={trades} />
+            <TradeCalendar trades={trades} selectedDate={selectedDate} onSelectDate={setSelectedDate} />
+            {selectedDate && (
+              <DailyTradeDetail 
+                trades={trades} 
+                selectedDate={selectedDate} 
+                settings={settings}
+                onClose={() => setSelectedDate(null)}
+                onDeleteTrade={deleteTrade}
+              />
+            )}
+          </>
         )}
       </div>
 
