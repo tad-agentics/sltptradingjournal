@@ -65,3 +65,4 @@ SELECT 'User settings table created successfully!' as status;
 SELECT 'Total policies on user_settings table: ' || count(*)::text as policy_count 
 FROM pg_policies 
 WHERE tablename = 'user_settings';
+

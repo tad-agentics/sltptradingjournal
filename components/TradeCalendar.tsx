@@ -95,10 +95,10 @@ export function TradeCalendar({ trades, selectedDate, onSelectDate }: TradeCalen
           >
             {/* Date and day of week at the top */}
             <div className="flex items-start justify-between">
-              <div className="text-[7px] md:text-xs text-muted-foreground">
+              <div className="text-[clamp(6px,1.5vw,12px)] text-muted-foreground leading-none">
                 {dayOfWeek}
               </div>
-              <div className="text-[7px] md:text-sm font-medium text-foreground">
+              <div className="text-[clamp(7px,1.8vw,14px)] font-medium text-foreground leading-none">
                 {day}
               </div>
             </div>
@@ -107,7 +107,7 @@ export function TradeCalendar({ trades, selectedDate, onSelectDate }: TradeCalen
             <div className="flex-1 flex items-center justify-center">
               {dailyData && dailyData.pnl !== 0 && (
                 <div className="text-center">
-                  <div className={`text-[11px] md:text-base font-semibold ${dailyData.pnl > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                  <div className={`text-[clamp(10px,2.5vw,18px)] font-semibold leading-none ${dailyData.pnl > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                     ${Math.abs(dailyData.pnl).toFixed(0)}
                   </div>
                 </div>

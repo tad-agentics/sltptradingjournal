@@ -174,3 +174,4 @@ export const settingsService: SettingsService = isSupabaseConfigured()
 
 // Helper to check which service is active
 export const isUsingSupabaseSettings = () => isSupabaseConfigured();
+
