@@ -26,10 +26,14 @@ export function PortfolioSummary({ trades, currentBalance }: PortfolioSummaryPro
     let winCount = 0;
     let lossCount = 0;
 
+    let monthlyFees = 0;
+
     currentMonthTrades.forEach(trade => {
       // Use Math.abs for fees to handle any negative fee values
-      const netPnL = trade.pnl - Math.abs(trade.fee);
+      const fee = Math.abs(trade.fee);
+      const netPnL = trade.pnl - fee;
       monthlyPL += netPnL;
+      monthlyFees += fee;
 
       if (trade.pnl > 0) {
         totalWinPnL += trade.pnl;
@@ -42,10 +46,16 @@ export function PortfolioSummary({ trades, currentBalance }: PortfolioSummaryPro
 
     // Calculate Monthly EV: (total win P&L - total loss P&L) / number of winning trades
     const monthlyEV = winCount > 0 ? (totalWinPnL - totalLossPnL) / winCount : 0;
+    
+    // Calculate fees as percentage of gross P&L (monthly P/L + fees)
+    const grossPL = monthlyPL + monthlyFees;
+    const feesPercent = grossPL !== 0 ? (monthlyFees / Math.abs(grossPL)) * 100 : 0;
 
     return {
       monthlyPL,
       monthlyEV,
+      monthlyFees,
+      feesPercent,
       winCount,
       lossCount
     };
@@ -98,7 +108,7 @@ export function PortfolioSummary({ trades, currentBalance }: PortfolioSummaryPro
               ${Math.abs(metrics.monthlyEV).toFixed(2)} / {((metrics.monthlyEV / (currentBalance * 0.01))).toFixed(1)}R
             </div>
             <div className="text-sm text-muted-foreground">
-              {metrics.winCount}W / {metrics.lossCount}L
+              Fees: ${metrics.monthlyFees.toFixed(2)} ({metrics.feesPercent.toFixed(1)}%)
             </div>
           </CardContent>
         </Card>
