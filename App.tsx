@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { AddTradeDialog } from './components/AddTradeDialog';
 import { SettingsDialog } from './components/SettingsDialog';
 import { PortfolioSummary } from './components/PortfolioSummary';
@@ -11,6 +11,7 @@ import { Plus, Settings, Cloud, CloudOff, LogIn } from 'lucide-react';
 import { tradeService, isUsingSupabase } from './lib/tradeService';
 import { AuthProvider, useAuth } from './lib/auth';
 import { calculateChallengeProgress } from './lib/challengeCalculator';
+import { settingsService, DEFAULT_SETTINGS, AppSettings } from './lib/settingsService';
 
 export interface Trade {
   id: string;
@@ -26,30 +27,78 @@ function AppContent() {
   const { user, loading: authLoading } = useAuth();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [settingsLoading, setSettingsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [settings, setSettings] = useState(() => {
+  const [settings, setSettings] = useState<AppSettings>(() => {
+    // Initialize with localStorage for immediate display, will be overwritten by cloud settings
     const savedSettings = localStorage.getItem('sltp-settings');
     if (savedSettings) {
-      return JSON.parse(savedSettings);
+      try {
+        return JSON.parse(savedSettings);
+      } catch {
+        return DEFAULT_SETTINGS;
+      }
     }
-    return {
-      beginningBalance: 10000,
-      dailyTargetR: 2.0,
-      slBudgetR: 1.0,
-      theme: 'dark' as 'light' | 'dark',
-      pairs: ['BTC/USD', 'ETH/USD', 'SOL/USD', 'XRP/USD'],
-      challenge: {
-        enabled: false,
-        targetBalance: 0,
-        durationDays: 0,
-        startDate: null as string | null,
-        startingBalance: 0
+    return DEFAULT_SETTINGS;
+  });
+
+  // Load settings from cloud when user changes
+  useEffect(() => {
+    const loadSettings = async () => {
+      if (authLoading) return;
+
+      // If using Supabase but not authenticated, use local settings
+      if (isUsingSupabase() && !user) {
+        setSettingsLoading(false);
+        return;
+      }
+
+      try {
+        setSettingsLoading(true);
+        
+        if (isUsingSupabase() && user) {
+          // Sync and get settings from cloud
+          const cloudSettings = await settingsService.syncFromLocalStorage();
+          setSettings(cloudSettings);
+          // Also update localStorage as cache
+          localStorage.setItem('sltp-settings', JSON.stringify(cloudSettings));
+        } else {
+          // Use local settings
+          const localSettings = await settingsService.getSettings();
+          setSettings(localSettings);
+        }
+      } catch (error) {
+        console.error('Error loading settings:', error);
+        // Keep using current settings on error
+      } finally {
+        setSettingsLoading(false);
       }
     };
-  });
+
+    loadSettings();
+  }, [user, authLoading]);
+
+  // Save settings handler - saves to both cloud and localStorage
+  const handleSaveSettings = useCallback(async (newSettings: AppSettings) => {
+    setSettings(newSettings);
+    
+    // Always save to localStorage as cache
+    localStorage.setItem('sltp-settings', JSON.stringify(newSettings));
+    
+    // If using Supabase and authenticated, save to cloud
+    if (isUsingSupabase() && user) {
+      try {
+        await settingsService.saveSettings(newSettings);
+        console.log('Settings synced to cloud');
+      } catch (error) {
+        console.error('Error saving settings to cloud:', error);
+        // Settings are still saved locally, so user won't lose them
+      }
+    }
+  }, [user]);
 
   // Load trades when user changes or on mount
   useEffect(() => {
@@ -132,11 +181,6 @@ function AppContent() {
     }
   }, [trades]);
 
-  // Save settings to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('sltp-settings', JSON.stringify(settings));
-  }, [settings]);
-
   // Apply theme to document
   useEffect(() => {
     if (settings.theme === 'dark') {
@@ -179,14 +223,14 @@ function AppContent() {
     ? calculateChallengeProgress(settings.challenge, currentBalance)
     : null;
 
-  // Show loading screen while auth or trades are loading
-  if (authLoading || isLoading) {
+  // Show loading screen while auth, trades, or settings are loading
+  if (authLoading || isLoading || settingsLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
           <p className="text-muted-foreground">
-            {authLoading ? 'Checking authentication...' : 'Loading your trades...'}
+            {authLoading ? 'Checking authentication...' : settingsLoading ? 'Loading settings...' : 'Loading your trades...'}
           </p>
         </div>
       </div>
@@ -217,7 +261,7 @@ function AppContent() {
             onOpenChange={setIsSettingsDialogOpen}
             settings={settings}
             currentBalance={currentBalance}
-            onSaveSettings={setSettings}
+            onSaveSettings={handleSaveSettings}
           />
         </div>
       </div>
@@ -317,7 +361,7 @@ function AppContent() {
         onOpenChange={setIsSettingsDialogOpen}
         settings={settings}
         currentBalance={currentBalance}
-        onSaveSettings={setSettings}
+        onSaveSettings={handleSaveSettings}
       />
     </div>
   );
