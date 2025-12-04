@@ -6,8 +6,9 @@ import { TradeCalendar } from './components/TradeCalendar';
 import { DailyTradeDetail } from './components/DailyTradeDetail';
 import { DatabaseErrorMessage } from './components/DatabaseErrorMessage';
 import { ChallengeProgress } from './components/ChallengeProgress';
+import { StatsPage } from './components/StatsPage';
 import { Button } from './components/ui/button';
-import { Plus, Settings, Cloud, CloudOff, LogIn } from 'lucide-react';
+import { Plus, Settings, Cloud, CloudOff, LogIn, BarChart3 } from 'lucide-react';
 import { tradeService, isUsingSupabase } from './lib/tradeService';
 import { AuthProvider, useAuth } from './lib/auth';
 import { calculateChallengeProgress } from './lib/challengeCalculator';
@@ -31,6 +32,7 @@ function AppContent() {
   const [hasError, setHasError] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
+  const [isStatsPageOpen, setIsStatsPageOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [settings, setSettings] = useState<AppSettings>(() => {
     // Initialize with localStorage for immediate display, will be overwritten by cloud settings
@@ -269,6 +271,11 @@ function AppContent() {
     );
   }
 
+  // If stats page is open, show it
+  if (isStatsPageOpen) {
+    return <StatsPage trades={trades} onBack={() => setIsStatsPageOpen(false)} />;
+  }
+
   return (
     <div className="min-h-screen bg-background pb-20">
       <div className="bg-transparent sticky top-0 z-10">
@@ -284,14 +291,24 @@ function AppContent() {
               )}
             </div>
           </div>
-          <Button 
-            onClick={() => setIsSettingsDialogOpen(true)}
-            variant="ghost"
-            size="icon"
-            className="rounded-full"
-          >
-            <Settings className="size-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              onClick={() => setIsStatsPageOpen(true)}
+              variant="ghost"
+              size="icon"
+              className="rounded-full"
+            >
+              <BarChart3 className="size-5" />
+            </Button>
+            <Button 
+              onClick={() => setIsSettingsDialogOpen(true)}
+              variant="ghost"
+              size="icon"
+              className="rounded-full"
+            >
+              <Settings className="size-5" />
+            </Button>
+          </div>
         </div>
       </div>
 
