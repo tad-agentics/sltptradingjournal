@@ -26,7 +26,8 @@ export function PortfolioSummary({ trades }: PortfolioSummaryProps) {
     let lossCount = 0;
 
     currentMonthTrades.forEach(trade => {
-      const netPnL = trade.pnl - trade.fee;
+      // Use Math.abs for fees to handle any negative fee values
+      const netPnL = trade.pnl - Math.abs(trade.fee);
       monthlyPL += netPnL;
 
       if (trade.pnl > 0) {

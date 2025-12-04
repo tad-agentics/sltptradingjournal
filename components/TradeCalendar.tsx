@@ -30,7 +30,8 @@ export function TradeCalendar({ trades, selectedDate, onSelectDate }: TradeCalen
     if (dayTrades.length === 0) return null;
 
     // Calculate total P&L for this day (sum of all trade P&Ls minus fees)
-    const dailyPnL = dayTrades.reduce((sum, trade) => sum + trade.pnl - trade.fee, 0);
+    // Use Math.abs for fees to handle any negative fee values
+    const dailyPnL = dayTrades.reduce((sum, trade) => sum + trade.pnl - Math.abs(trade.fee), 0);
 
     return {
       pnl: dailyPnL,

@@ -217,7 +217,8 @@ function AppContent() {
   };
 
   // Calculate current balance and challenge progress
-  const currentBalance = settings.beginningBalance + trades.reduce((sum, trade) => sum + trade.pnl - trade.fee, 0);
+  // Use Math.abs for fees to handle any negative fee values
+  const currentBalance = settings.beginningBalance + trades.reduce((sum, trade) => sum + trade.pnl - Math.abs(trade.fee), 0);
   
   const challengeProgress = settings.challenge.enabled 
     ? calculateChallengeProgress(settings.challenge, currentBalance)

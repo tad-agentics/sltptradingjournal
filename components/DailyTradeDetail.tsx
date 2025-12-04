@@ -63,8 +63,9 @@ export function DailyTradeDetail({ trades, selectedDate, settings, challengeProg
 
   // Calculate performance metrics
   const totalTrades = dayTrades.length;
-  const totalPnL = dayTrades.reduce((sum, trade) => sum + trade.pnl - trade.fee, 0);
-  const totalFees = dayTrades.reduce((sum, trade) => sum + trade.fee, 0);
+  // Use Math.abs for fees to handle any negative fee values
+  const totalPnL = dayTrades.reduce((sum, trade) => sum + trade.pnl - Math.abs(trade.fee), 0);
+  const totalFees = dayTrades.reduce((sum, trade) => sum + Math.abs(trade.fee), 0);
   
   const winningTrades = dayTrades.filter(trade => trade.pnl > 0);
   const losingTrades = dayTrades.filter(trade => trade.pnl < 0);
@@ -72,8 +73,13 @@ export function DailyTradeDetail({ trades, selectedDate, settings, challengeProg
   const lossCount = losingTrades.length;
   const winRate = totalTrades > 0 ? (winCount / totalTrades) * 100 : 0;
 
-  // Calculate R (1% of account balance)
-  const rValue = settings.beginningBalance * 0.01;
+  // Calculate start-of-day balance (beginning balance + all P&L from previous days)
+  const previousDaysTrades = trades.filter(trade => trade.date < selectedDate);
+  const previousDaysPnL = previousDaysTrades.reduce((sum, trade) => sum + trade.pnl - Math.abs(trade.fee), 0);
+  const startOfDayBalance = settings.beginningBalance + previousDaysPnL;
+
+  // Calculate R (1% of start-of-day balance)
+  const rValue = startOfDayBalance * 0.01;
   const totalR = totalPnL / rValue;
   
   // Calculate target and budget in dollars
@@ -204,7 +210,7 @@ export function DailyTradeDetail({ trades, selectedDate, settings, challengeProg
                 )}
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <span className="text-[10px] text-muted-foreground">Fee: ${trade.fee.toFixed(2)}</span>
+                <span className="text-[10px] text-muted-foreground">Fee: ${Math.abs(trade.fee).toFixed(2)}</span>
                 <span className={`text-sm ${trade.pnl >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                   {trade.pnl >= 0 ? '+' : ''}${trade.pnl.toFixed(2)}
                 </span>
