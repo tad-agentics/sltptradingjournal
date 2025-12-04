@@ -15,8 +15,9 @@ export interface ChallengeProgress {
 }
 
 /**
- * Calculate dynamic daily R based on account size and progress
- * Risk management: smaller accounts can handle higher R, larger accounts reduce R
+ * Calculate required daily R and assess risk level based on account size
+ * Risk level is informational only - it tells you how aggressive your target is
+ * The required daily R is always the true mathematical requirement to reach your goal
  */
 function calculateDynamicDailyR(
   currentBalance: number,
@@ -25,40 +26,35 @@ function calculateDynamicDailyR(
 ): { dailyR: number; riskLevel: 'Conservative' | 'Moderate' | 'Aggressive' } {
   if (daysRemaining <= 0) return { dailyR: 0, riskLevel: 'Conservative' };
   
-  // Calculate compound daily growth rate needed
+  // Calculate compound daily growth rate needed (this is the TRUE requirement)
   const totalGrowthNeeded = targetBalance / currentBalance;
   const dailyGrowthMultiplier = Math.pow(totalGrowthNeeded, 1 / daysRemaining);
   const dailyGrowthPercent = (dailyGrowthMultiplier - 1) * 100;
   
-  // Risk scaling based on account size
-  // Smaller accounts: higher R acceptable (3-4R)
-  // Larger accounts: reduce R by 0.5-1R increments
-  let scaledR = dailyGrowthPercent;
+  // Risk level assessment based on account size and required R
+  // This is informational only - warns you how aggressive your goal is
+  // Larger accounts should typically target lower R for risk management
   let riskLevel: 'Conservative' | 'Moderate' | 'Aggressive' = 'Conservative';
   
   if (currentBalance < 5000) {
-    // Small account: can handle higher R
-    scaledR = dailyGrowthPercent;
+    // Small account thresholds
     riskLevel = dailyGrowthPercent > 2 ? 'Aggressive' : dailyGrowthPercent > 1 ? 'Moderate' : 'Conservative';
   } else if (currentBalance < 10000) {
-    // Medium account: slight reduction
-    scaledR = dailyGrowthPercent * 0.9;
-    riskLevel = scaledR > 1.5 ? 'Moderate' : 'Conservative';
+    // Medium account: lower thresholds
+    riskLevel = dailyGrowthPercent > 1.5 ? 'Aggressive' : dailyGrowthPercent > 0.75 ? 'Moderate' : 'Conservative';
   } else if (currentBalance < 25000) {
-    // Large account: reduce by 0.5R
-    scaledR = dailyGrowthPercent * 0.75;
-    riskLevel = 'Conservative';
+    // Large account: even lower thresholds
+    riskLevel = dailyGrowthPercent > 1 ? 'Aggressive' : dailyGrowthPercent > 0.5 ? 'Moderate' : 'Conservative';
   } else if (currentBalance < 50000) {
-    // Very large: reduce by 1R
-    scaledR = dailyGrowthPercent * 0.6;
-    riskLevel = 'Conservative';
+    // Very large account
+    riskLevel = dailyGrowthPercent > 0.75 ? 'Aggressive' : dailyGrowthPercent > 0.4 ? 'Moderate' : 'Conservative';
   } else {
-    // Huge account: maximum risk reduction
-    scaledR = dailyGrowthPercent * 0.5;
-    riskLevel = 'Conservative';
+    // Huge account: most conservative thresholds
+    riskLevel = dailyGrowthPercent > 0.5 ? 'Aggressive' : dailyGrowthPercent > 0.25 ? 'Moderate' : 'Conservative';
   }
   
-  return { dailyR: scaledR, riskLevel };
+  // Return the TRUE required daily R (not reduced) with risk assessment
+  return { dailyR: dailyGrowthPercent, riskLevel };
 }
 
 /**
