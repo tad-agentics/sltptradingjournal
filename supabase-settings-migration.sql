@@ -66,3 +66,4 @@ SELECT 'Total policies on user_settings table: ' || count(*)::text as policy_cou
 FROM pg_policies 
 WHERE tablename = 'user_settings';
 
+
