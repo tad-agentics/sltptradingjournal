@@ -1,12 +1,13 @@
 import { Trade } from '../App';
 import { Card, CardContent } from './ui/card';
-import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Wallet } from 'lucide-react';
 
 interface PortfolioSummaryProps {
   trades: Trade[];
+  currentBalance: number;
 }
 
-export function PortfolioSummary({ trades }: PortfolioSummaryProps) {
+export function PortfolioSummary({ trades, currentBalance }: PortfolioSummaryProps) {
   // Calculate portfolio metrics
   const calculateMetrics = () => {
     const currentMonth = new Date().getMonth();
@@ -54,21 +55,35 @@ export function PortfolioSummary({ trades }: PortfolioSummaryProps) {
 
   return (
     <div className="space-y-3">
-      <Card className="bg-card border border-border shadow-sm">
-        <CardContent className="pt-6">
-          <div className="text-sm text-muted-foreground mb-1">Current Monthly P/L</div>
-          <div className="flex items-baseline gap-2">
-            {metrics.monthlyPL >= 0 ? (
-              <TrendingUp className="size-6 text-green-500" />
-            ) : (
-              <TrendingDown className="size-6 text-red-500" />
-            )}
-            <span className={`text-3xl ${metrics.monthlyPL >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-              ${Math.abs(metrics.monthlyPL).toFixed(2)}
-            </span>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-2 gap-3">
+        <Card className="bg-card border border-border shadow-sm">
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-1 text-sm mb-1">
+              <Wallet className="size-4 text-muted-foreground" />
+              <span className="text-muted-foreground">Current Balance</span>
+            </div>
+            <div className="text-2xl">
+              ${currentBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card border border-border shadow-sm">
+          <CardContent className="pt-4">
+            <div className="text-sm text-muted-foreground mb-1">Monthly P/L</div>
+            <div className="flex items-baseline gap-2">
+              {metrics.monthlyPL >= 0 ? (
+                <TrendingUp className="size-5 text-green-500" />
+              ) : (
+                <TrendingDown className="size-5 text-red-500" />
+              )}
+              <span className={`text-2xl ${metrics.monthlyPL >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                ${Math.abs(metrics.monthlyPL).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="grid grid-cols-2 gap-3">
         <Card className="bg-card border border-border shadow-sm">

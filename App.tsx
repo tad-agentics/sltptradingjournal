@@ -300,7 +300,7 @@ function AppContent() {
           <DatabaseErrorMessage onRetry={retryLoadTrades} />
         ) : (
           <>
-            <PortfolioSummary trades={trades} />
+            <PortfolioSummary trades={trades} currentBalance={currentBalance} />
             
             {/* Challenge Progress - Show if enabled */}
             {challengeProgress && (
