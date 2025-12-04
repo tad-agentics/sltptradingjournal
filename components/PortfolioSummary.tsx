@@ -95,7 +95,7 @@ export function PortfolioSummary({ trades, currentBalance }: PortfolioSummaryPro
               </span>
             </div>
             <div className={metrics.monthlyEV >= 0 ? 'text-green-500' : 'text-red-500'}>
-              ${Math.abs(metrics.monthlyEV).toFixed(2)}
+              ${Math.abs(metrics.monthlyEV).toFixed(2)} / {((metrics.monthlyEV / (currentBalance * 0.01))).toFixed(1)}R
             </div>
             <div className="text-sm text-muted-foreground">
               {metrics.winCount}W / {metrics.lossCount}L
