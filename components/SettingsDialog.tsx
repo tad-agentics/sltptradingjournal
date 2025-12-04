@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -7,6 +7,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { X } from 'lucide-react';
 import { AuthSection } from './AuthSection';
 import { isUsingSupabase } from '../lib/tradeService';
+
+// Helper to format number with thousand separators for display
+const formatWithSeparators = (value: string): string => {
+  const num = parseFloat(value.replace(/,/g, ''));
+  if (isNaN(num)) return value;
+  return num.toLocaleString('en-US');
+};
+
+// Helper to remove separators for storage
+const removeFormatting = (value: string): string => {
+  return value.replace(/,/g, '');
+};
 
 interface SettingsDialogProps {
   open: boolean;
@@ -31,26 +43,26 @@ interface SettingsDialogProps {
 
 export function SettingsDialog({ open, onOpenChange, settings, currentBalance, onSaveSettings }: SettingsDialogProps) {
   const [formData, setFormData] = useState({
-    beginningBalance: settings.beginningBalance.toString(),
+    beginningBalance: settings.beginningBalance.toLocaleString('en-US'),
     dailyTargetR: settings.dailyTargetR.toString(),
     slBudgetR: settings.slBudgetR.toString(),
     theme: settings.theme,
     pairs: settings.pairs,
     challengeEnabled: settings.challenge.enabled,
-    challengeTargetBalance: settings.challenge.targetBalance.toString(),
+    challengeTargetBalance: settings.challenge.targetBalance.toLocaleString('en-US'),
     challengeDurationDays: settings.challenge.durationDays.toString(),
   });
   const [newPair, setNewPair] = useState('');
 
   useEffect(() => {
     setFormData({
-      beginningBalance: settings.beginningBalance.toString(),
+      beginningBalance: settings.beginningBalance.toLocaleString('en-US'),
       dailyTargetR: settings.dailyTargetR.toString(),
       slBudgetR: settings.slBudgetR.toString(),
       theme: settings.theme,
       pairs: settings.pairs,
       challengeEnabled: settings.challenge.enabled,
-      challengeTargetBalance: settings.challenge.targetBalance.toString(),
+      challengeTargetBalance: settings.challenge.targetBalance.toLocaleString('en-US'),
       challengeDurationDays: settings.challenge.durationDays.toString(),
     });
   }, [settings]);
@@ -80,14 +92,14 @@ export function SettingsDialog({ open, onOpenChange, settings, currentBalance, o
     }
 
     const newSettings = {
-      beginningBalance: parseFloat(formData.beginningBalance),
+      beginningBalance: parseFloat(removeFormatting(formData.beginningBalance)),
       dailyTargetR: parseFloat(formData.dailyTargetR),
       slBudgetR: parseFloat(formData.slBudgetR),
       theme: formData.theme,
       pairs: formData.pairs,
       challenge: {
         enabled: formData.challengeEnabled,
-        targetBalance: parseFloat(formData.challengeTargetBalance) || 0,
+        targetBalance: parseFloat(removeFormatting(formData.challengeTargetBalance)) || 0,
         durationDays: parseInt(formData.challengeDurationDays) || 0,
         // If enabling for first time, set start date and starting balance
         startDate: formData.challengeEnabled && !settings.challenge.enabled 
@@ -115,11 +127,12 @@ export function SettingsDialog({ open, onOpenChange, settings, currentBalance, o
             <Label htmlFor="beginningBalance">Beginning Balance ($)</Label>
             <Input
               id="beginningBalance"
-              type="number"
-              step="0.01"
-              placeholder="10000.00"
+              type="text"
+              inputMode="decimal"
+              placeholder="10,000.00"
               value={formData.beginningBalance}
-              onChange={(e) => setFormData({ ...formData, beginningBalance: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, beginningBalance: e.target.value.replace(/[^0-9.,]/g, '') })}
+              onBlur={(e) => setFormData({ ...formData, beginningBalance: formatWithSeparators(e.target.value) })}
               required
             />
           </div>
@@ -152,11 +165,12 @@ export function SettingsDialog({ open, onOpenChange, settings, currentBalance, o
                   <Label htmlFor="challengeTargetBalance">Target $ (Gross)</Label>
                   <Input
                     id="challengeTargetBalance"
-                    type="number"
-                    step="0.01"
-                    placeholder="100000"
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="100,000"
                     value={formData.challengeTargetBalance}
-                    onChange={(e) => setFormData({ ...formData, challengeTargetBalance: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, challengeTargetBalance: e.target.value.replace(/[^0-9.,]/g, '') })}
+                    onBlur={(e) => setFormData({ ...formData, challengeTargetBalance: formatWithSeparators(e.target.value) })}
                     required={formData.challengeEnabled}
                   />
                 </div>

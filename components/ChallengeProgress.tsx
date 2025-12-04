@@ -27,8 +27,8 @@ export function ChallengeProgress({
         </div>
         
         <div className="flex items-center justify-between text-sm mb-2">
-          <span className="text-foreground">${currentBalance.toFixed(0)}</span>
-          <span className="text-foreground">${targetBalance.toFixed(0)}</span>
+          <span className="text-foreground">${currentBalance.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
+          <span className="text-foreground">${targetBalance.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
         </div>
         
         <div className="h-2 bg-muted rounded-full overflow-hidden mb-4">
