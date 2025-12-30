@@ -223,6 +223,44 @@ function AppContent() {
     await addTrade(withdrawalTrade);
   };
 
+  const handleUpdateWithdrawal = async (id: string, amount: number, date: string) => {
+    // Update the withdrawal trade
+    const updatedTrades = trades.map(trade => {
+      if (trade.id === id && trade.pair === 'WITHDRAWAL') {
+        return {
+          ...trade,
+          pnl: -amount,
+          date: date,
+          notes: `Withdrawal: $${amount.toFixed(2)}`
+        };
+      }
+      return trade;
+    });
+    
+    setTrades(updatedTrades);
+    
+    // Also update in database
+    try {
+      await tradeService.deleteTrade(id);
+      const newTrade = await tradeService.addTrade({
+        pair: 'WITHDRAWAL',
+        direction: 'short',
+        pnl: -amount,
+        fee: 0,
+        date: date,
+        notes: `Withdrawal: $${amount.toFixed(2)}`
+      });
+      // Replace with new trade that has the new ID
+      setTrades(updatedTrades.map(t => t.id === id ? newTrade : t));
+    } catch (error) {
+      console.error('Error updating withdrawal:', error);
+    }
+  };
+
+  const handleDeleteWithdrawal = async (id: string) => {
+    await deleteTrade(id);
+  };
+
   const deleteTrade = async (id: string) => {
     try {
       await tradeService.deleteTrade(id);
@@ -402,6 +440,9 @@ function AppContent() {
         open={isWithdrawalDialogOpen}
         onOpenChange={setIsWithdrawalDialogOpen}
         onWithdraw={handleWithdrawal}
+        withdrawals={trades.filter(t => t.pair === 'WITHDRAWAL').sort((a, b) => b.date.localeCompare(a.date))}
+        onUpdateWithdrawal={handleUpdateWithdrawal}
+        onDeleteWithdrawal={handleDeleteWithdrawal}
       />
       <SettingsDialog 
         open={isSettingsDialogOpen}
