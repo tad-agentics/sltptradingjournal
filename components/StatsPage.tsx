@@ -287,7 +287,10 @@ export function StatsPage({ trades, onBack }: StatsPageProps) {
                       borderRadius: '8px',
                       fontSize: '12px'
                     }}
-                    formatter={(value: number | undefined) => value !== undefined ? [`$${value.toFixed(2)}`, 'Cumulative P&L'] : ['', '']}
+                    formatter={(value: any) => {
+                      const numValue = typeof value === 'number' ? value : parseFloat(value);
+                      return !isNaN(numValue) ? [`$${numValue.toFixed(2)}`, 'Cumulative P&L'] : ['', ''];
+                    }}
                   />
                   <Line 
                     type="monotone" 
@@ -324,10 +327,13 @@ export function StatsPage({ trades, onBack }: StatsPageProps) {
                       borderRadius: '8px',
                       fontSize: '12px'
                     }}
-                    formatter={(value: number | undefined, name: string | undefined, props: any) => value !== undefined ? [
-                      `$${value.toFixed(2)}`,
-                      `${props.payload.pair} - ${props.payload.date}`
-                    ] : ['', '']}
+                    formatter={(value: any, name: any, props: any) => {
+                      const numValue = typeof value === 'number' ? value : parseFloat(value);
+                      return !isNaN(numValue) ? [
+                        `$${numValue.toFixed(2)}`,
+                        `${props.payload.pair} - ${props.payload.date}`
+                      ] : ['', ''];
+                    }}
                   />
                   <Bar 
                     dataKey="pnl" 
