@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AddTradeDialog } from './components/AddTradeDialog';
+import { WithdrawalDialog } from './components/WithdrawalDialog';
 import { SettingsDialog } from './components/SettingsDialog';
 import { PortfolioSummary } from './components/PortfolioSummary';
 import { TradeCalendar } from './components/TradeCalendar';
@@ -8,7 +9,7 @@ import { DatabaseErrorMessage } from './components/DatabaseErrorMessage';
 import { ChallengeProgress } from './components/ChallengeProgress';
 import { StatsPage } from './components/StatsPage';
 import { Button } from './components/ui/button';
-import { Plus, Settings, Cloud, CloudOff, LogIn, BarChart3 } from 'lucide-react';
+import { Plus, Settings, Cloud, CloudOff, LogIn, BarChart3, Minus } from 'lucide-react';
 import { tradeService, isUsingSupabase } from './lib/tradeService';
 import { AuthProvider, useAuth } from './lib/auth';
 import { calculateChallengeProgress } from './lib/challengeCalculator';
@@ -31,6 +32,7 @@ function AppContent() {
   const [settingsLoading, setSettingsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isWithdrawalDialogOpen, setIsWithdrawalDialogOpen] = useState(false);
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
   const [isStatsPageOpen, setIsStatsPageOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -207,6 +209,20 @@ function AppContent() {
     }
   };
 
+  const handleWithdrawal = async (amount: number, date: string) => {
+    // Create a withdrawal as a negative trade with no fees
+    const withdrawalTrade: Omit<Trade, 'id'> = {
+      pair: 'WITHDRAWAL',
+      direction: 'short',
+      pnl: -amount,
+      fee: 0,
+      date: date,
+      notes: `Withdrawal: $${amount.toFixed(2)}`
+    };
+    
+    await addTrade(withdrawalTrade);
+  };
+
   const deleteTrade = async (id: string) => {
     try {
       await tradeService.deleteTrade(id);
@@ -357,14 +373,22 @@ function AppContent() {
 
       <div className="fixed bottom-0 left-0 right-0 p-4">
         <div className="relative">
-          {/* Floating Add Trade Button */}
-          <button
-            onClick={() => setIsAddDialogOpen(true)}
-            className="absolute -top-14 left-1/2 -translate-x-1/2 bg-white text-black rounded-full px-5 py-2 shadow-xl flex items-center gap-2 hover:bg-white/90 transition-all hover:scale-105"
-          >
-            <Plus className="size-4" />
-            <span className="font-medium">Trade</span>
-          </button>
+          {/* Floating Action Buttons */}
+          <div className="absolute -top-14 left-1/2 -translate-x-1/2 bg-white shadow-xl rounded-full flex items-center">
+            <button
+              onClick={() => setIsAddDialogOpen(true)}
+              className="text-black px-5 py-4 flex items-center justify-center hover:bg-gray-200 active:bg-gray-200 transition-all rounded-l-full"
+            >
+              <Plus className="size-5" />
+            </button>
+            <div className="w-px h-6 bg-gray-300"></div>
+            <button
+              onClick={() => setIsWithdrawalDialogOpen(true)}
+              className="text-black px-5 py-4 flex items-center justify-center hover:bg-gray-200 active:bg-gray-200 transition-all rounded-r-full"
+            >
+              <Minus className="size-5" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -373,6 +397,11 @@ function AppContent() {
         onOpenChange={setIsAddDialogOpen}
         onAddTrade={addTrade}
         pairs={settings.pairs}
+      />
+      <WithdrawalDialog 
+        open={isWithdrawalDialogOpen}
+        onOpenChange={setIsWithdrawalDialogOpen}
+        onWithdraw={handleWithdrawal}
       />
       <SettingsDialog 
         open={isSettingsDialogOpen}
