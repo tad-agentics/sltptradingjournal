@@ -287,7 +287,7 @@ export function StatsPage({ trades, onBack }: StatsPageProps) {
                       borderRadius: '8px',
                       fontSize: '12px'
                     }}
-                    formatter={(value: number) => [`$${value.toFixed(2)}`, 'Cumulative P&L']}
+                    formatter={(value: number | undefined) => value !== undefined ? [`$${value.toFixed(2)}`, 'Cumulative P&L'] : ['', '']}
                   />
                   <Line 
                     type="monotone" 
@@ -324,10 +324,10 @@ export function StatsPage({ trades, onBack }: StatsPageProps) {
                       borderRadius: '8px',
                       fontSize: '12px'
                     }}
-                    formatter={(value: number, name: string, props: any) => [
+                    formatter={(value: number | undefined, name: string | undefined, props: any) => value !== undefined ? [
                       `$${value.toFixed(2)}`,
                       `${props.payload.pair} - ${props.payload.date}`
-                    ]}
+                    ] : ['', '']}
                   />
                   <Bar 
                     dataKey="pnl" 

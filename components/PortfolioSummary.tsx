@@ -8,15 +8,22 @@ interface PortfolioSummaryProps {
 }
 
 export function PortfolioSummary({ trades, currentBalance }: PortfolioSummaryProps) {
+  // Calculate total withdrawals (all time)
+  const totalWithdrawals = trades
+    .filter(trade => trade.pair === 'WITHDRAWAL')
+    .reduce((sum, trade) => sum + Math.abs(trade.pnl), 0);
+
   // Calculate portfolio metrics
   const calculateMetrics = () => {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
 
-    // Filter trades for current month
+    // Filter trades for current month (EXCLUDE withdrawals from trading metrics)
     const currentMonthTrades = trades.filter(trade => {
       const tradeDate = new Date(trade.date);
-      return tradeDate.getMonth() === currentMonth && tradeDate.getFullYear() === currentYear;
+      return tradeDate.getMonth() === currentMonth && 
+             tradeDate.getFullYear() === currentYear &&
+             trade.pair !== 'WITHDRAWAL'; // Exclude withdrawals
     });
 
     // Calculate monthly P&L (sum of all P&Ls minus fees)
@@ -75,6 +82,11 @@ export function PortfolioSummary({ trades, currentBalance }: PortfolioSummaryPro
             <div className="text-2xl">
               ${currentBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
+            {totalWithdrawals > 0 && (
+              <div className="text-sm text-muted-foreground mt-1">
+                Withdrawn: ${totalWithdrawals.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+            )}
           </CardContent>
         </Card>
 

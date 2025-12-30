@@ -28,6 +28,9 @@ interface DailyTradeDetailProps {
 
 export function DailyTradeDetail({ trades, selectedDate, settings, challengeProgress, onClose, onDeleteTrade }: DailyTradeDetailProps) {
   const dayTrades = trades.filter(trade => trade.date === selectedDate);
+  // Separate actual trades from withdrawals
+  const actualTrades = dayTrades.filter(trade => trade.pair !== 'WITHDRAWAL');
+  const withdrawals = dayTrades.filter(trade => trade.pair === 'WITHDRAWAL');
   
   const formattedDate = new Date(selectedDate).toLocaleDateString('en-US', {
     weekday: 'long',
@@ -61,14 +64,14 @@ export function DailyTradeDetail({ trades, selectedDate, settings, challengeProg
     );
   }
 
-  // Calculate performance metrics
-  const totalTrades = dayTrades.length;
+  // Calculate performance metrics (ONLY for actual trades, not withdrawals)
+  const totalTrades = actualTrades.length;
   // Use Math.abs for fees to handle any negative fee values
-  const totalPnL = dayTrades.reduce((sum, trade) => sum + trade.pnl - Math.abs(trade.fee), 0);
-  const totalFees = dayTrades.reduce((sum, trade) => sum + Math.abs(trade.fee), 0);
+  const totalPnL = actualTrades.reduce((sum, trade) => sum + trade.pnl - Math.abs(trade.fee), 0);
+  const totalFees = actualTrades.reduce((sum, trade) => sum + Math.abs(trade.fee), 0);
   
-  const winningTrades = dayTrades.filter(trade => trade.pnl > 0);
-  const losingTrades = dayTrades.filter(trade => trade.pnl < 0);
+  const winningTrades = actualTrades.filter(trade => trade.pnl > 0);
+  const losingTrades = actualTrades.filter(trade => trade.pnl < 0);
   const winCount = winningTrades.length;
   const lossCount = losingTrades.length;
   const winRate = totalTrades > 0 ? (winCount / totalTrades) * 100 : 0;

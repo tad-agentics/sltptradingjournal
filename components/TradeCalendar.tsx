@@ -29,13 +29,14 @@ export function TradeCalendar({ trades, selectedDate, onSelectDate }: TradeCalen
     
     if (dayTrades.length === 0) return null;
 
-    // Calculate total P&L for this day (sum of all trade P&Ls minus fees)
+    // Calculate total P&L for this day (EXCLUDE withdrawals from trading P/L)
     // Use Math.abs for fees to handle any negative fee values
-    const dailyPnL = dayTrades.reduce((sum, trade) => sum + trade.pnl - Math.abs(trade.fee), 0);
+    const actualTrades = dayTrades.filter(trade => trade.pair !== 'WITHDRAWAL');
+    const dailyPnL = actualTrades.reduce((sum, trade) => sum + trade.pnl - Math.abs(trade.fee), 0);
 
     return {
       pnl: dailyPnL,
-      tradeCount: dayTrades.length
+      tradeCount: actualTrades.length
     };
   };
 
